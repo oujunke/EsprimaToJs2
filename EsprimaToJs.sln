@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31019.35
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EsprimaToJs", "EsprimaToJs\EsprimaToJs.csproj", "{AB84C0B6-B9C3-42A1-A72A-08A5E1372D84}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{176AD49C-5E90-489E-9445-1EC4CFEA4754}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AB84C0B6-B9C3-42A1-A72A-08A5E1372D84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB84C0B6-B9C3-42A1-A72A-08A5E1372D84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB84C0B6-B9C3-42A1-A72A-08A5E1372D84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB84C0B6-B9C3-42A1-A72A-08A5E1372D84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{176AD49C-5E90-489E-9445-1EC4CFEA4754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{176AD49C-5E90-489E-9445-1EC4CFEA4754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{176AD49C-5E90-489E-9445-1EC4CFEA4754}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{176AD49C-5E90-489E-9445-1EC4CFEA4754}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {80D70959-9817-4F20-A204-3518A0CE4CEB}
+	EndGlobalSection
+EndGlobal
