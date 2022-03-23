@@ -109,6 +109,10 @@ namespace EsprimaToJs
             {
                 return;
             }
+            if (node.Location.Start.Line == 5055)
+            {
+
+            }
             switch (node.Type)
             {
                 //声明 (var|let|const)
@@ -140,11 +144,11 @@ namespace EsprimaToJs
                     var variableDeclarator = (VariableDeclarator)node;
                     BeginEndAddBody(options.HasFlag(Options.VariableDeclaratorBrackets), () =>
                     {
-                        WriteNode(variableDeclarator.Id);
+                        WriteNode(variableDeclarator.Id, options);
                         if (variableDeclarator.Init != null)
                         {
                             WriteString("=");
-                            WriteNode(variableDeclarator.Init);
+                            WriteNode(variableDeclarator.Init, options);
                         }
                         if (!options.HasFlag(Options.VariableDeclaratorNotBranch))
                         {
@@ -171,7 +175,7 @@ namespace EsprimaToJs
                                 WriteString(",");
                                 NewLine();
                             }
-                            WriteNode(objectExpression.Properties[i]);
+                            WriteNode(objectExpression.Properties[i], options);
                         }
                         Spacing--;
                         NewLine();
@@ -187,7 +191,9 @@ namespace EsprimaToJs
                     var functionExpression = node as FunctionExpression;
                     BeginEndAddBody(options.HasFlag(Options.FunctionExpressionBrackets), () =>
                     {
-                        WriteString("function(");
+                        WriteString("function ");
+                        WriteNode(functionExpression.Id, options);
+                        WriteString("(");
                         WriteParams(functionExpression.Params);
                         WriteString("){");
                         Spacing++;
@@ -201,9 +207,9 @@ namespace EsprimaToJs
                 //属性
                 case Nodes.Property:
                     var property = node as Property;
-                    WriteNode(property.Key);
+                    WriteNode(property.Key, options);
                     WriteString(":");
-                    WriteNode(property.Value);
+                    WriteNode(property.Value, options);
                     break;
                 //值
                 case Nodes.Literal:
@@ -215,7 +221,7 @@ namespace EsprimaToJs
                     NewLine();
                     foreach (var item in node.ChildNodes)
                     {
-                        WriteNode(item);
+                        WriteNode(item, options);
                         if (options.HasFlag(Options.BlockStatementLine))
                         {
                             NewLine();
@@ -226,14 +232,14 @@ namespace EsprimaToJs
                 case Nodes.ReturnStatement:
                     NewLine();
                     WriteString("return ");
-                    WriteNode(node.ChildNodes);
+                    WriteNode(node.ChildNodes, options);
                     NewBranch();
                     break;
                 //语句块
                 case Nodes.ExpressionStatement:
                     foreach (var item in node.ChildNodes)
                     {
-                        WriteNode(item);
+                        WriteNode(item, options);
                         NewBranch();
                         NewLine();
                     }
@@ -244,16 +250,16 @@ namespace EsprimaToJs
                     BeginEndAddBody(options.HasFlag(Options.VariableDeclaratorBrackets), () =>
                     {
                         //NewLine();
-                        WriteNode(assignmentExpression.Left);
+                        WriteNode(assignmentExpression.Left, options);
                         WriteOperator(assignmentExpression.Operator);
-                        WriteNode(assignmentExpression.Right);
+                        WriteNode(assignmentExpression.Right, options);
                     }, "(", ")");
                     //NewBranch();
                     break;
                 //读取对象属性
                 case Nodes.MemberExpression:
                     var memberExpression = node as MemberExpression;
-                    WriteNode(memberExpression.Object, options);
+                    WriteNode(memberExpression.Object, options|Options.VariableDeclaratorBrackets);
                     if (memberExpression.Computed)
                     {
                         WriteString("[");
@@ -271,13 +277,13 @@ namespace EsprimaToJs
                     var functionDeclaration = node as FunctionDeclaration;
                     NewLine();
                     WriteString("function ");
-                    WriteNode(functionDeclaration.Id);
+                    WriteNode(functionDeclaration.Id, options);
                     WriteString("(");
                     WriteParams(functionDeclaration.Params);
                     WriteString("){");
                     Spacing++;
                     NewLine();
-                    WriteNode(functionDeclaration.Body);
+                    WriteNode(functionDeclaration.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -286,7 +292,7 @@ namespace EsprimaToJs
                 //方法调用
                 case Nodes.CallExpression:
                     var callExpression = node as CallExpression;
-                    WriteNode(callExpression.Callee, Options.FunctionExpressionBrackets);
+                    WriteNode(callExpression.Callee,Options.FunctionExpressionBrackets);
                     WriteString("(");
                     WriteParams(callExpression.Arguments);
                     WriteString(")");
@@ -299,11 +305,11 @@ namespace EsprimaToJs
                         NewLine();
                     }
                     WriteString("if(");
-                    WriteNode(ifStatement.Test, Options.VariableDeclaratorBrackets);
+                    WriteNode(ifStatement.Test, options|Options.VariableDeclaratorBrackets);
                     WriteString("){");
                     Spacing++;
                     NewLine();
-                    WriteNode(ifStatement.Consequent);
+                    WriteNode(ifStatement.Consequent, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -359,13 +365,13 @@ namespace EsprimaToJs
                 case Nodes.ForInStatement:
                     ForInStatement forInStatement = node as ForInStatement;
                     WriteString("for(");
-                    WriteNode(forInStatement.Left, Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
+                    WriteNode(forInStatement.Left, options| Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
                     WriteString(" in ");
-                    WriteNode(forInStatement.Right);
+                    WriteNode(forInStatement.Right, options);
                     WriteString("){");
                     Spacing++;
                     NewLine();
-                    WriteNode(forInStatement.Body);
+                    WriteNode(forInStatement.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -377,9 +383,9 @@ namespace EsprimaToJs
                     {
                         WriteNode(conditionalExpression.Test, options | Options.VariableDeclaratorBrackets);
                         WriteString("?");
-                        WriteNode(conditionalExpression.Consequent);
+                        WriteNode(conditionalExpression.Consequent, options);
                         WriteString(":");
-                        WriteNode(conditionalExpression.Alternate);
+                        WriteNode(conditionalExpression.Alternate, options);
                     }, "(", ")");
 
                     break;
@@ -388,15 +394,15 @@ namespace EsprimaToJs
                     var forStatement = node as ForStatement;
                     NewLine();
                     WriteString("for(");
-                    WriteNode(forStatement.Init, Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch | Options.VariableDeclarationComma);
+                    WriteNode(forStatement.Init, options| Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch | Options.VariableDeclarationComma);
                     WriteString(" ; ");
-                    WriteNode(forStatement.Test);
+                    WriteNode(forStatement.Test, options);
                     WriteString(" ; ");
-                    WriteNode(forStatement.Update);
+                    WriteNode(forStatement.Update,options);
                     WriteString(" ){");
                     Spacing++;
                     NewLine();
-                    WriteNode(forStatement.Body);
+                    WriteNode(forStatement.Body,options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -411,16 +417,24 @@ namespace EsprimaToJs
                 //自增
                 case Nodes.UpdateExpression:
                     var updateExpression = node as UpdateExpression;
-                    WriteNode(updateExpression.Argument);
-                    WriteOperator(updateExpression.Operator);
+                    if (updateExpression.Prefix)
+                    {
+                        WriteOperator(updateExpression.Operator);
+                        WriteNode(updateExpression.Argument, options);
+                    }
+                    else
+                    {
+                        WriteNode(updateExpression.Argument, options);
+                        WriteOperator(updateExpression.Operator);
+                    }
                     break;
                 //创建对象
                 case Nodes.NewExpression:
                     var newExpression = node as NewExpression;
                     WriteString("new ");
-                    WriteNode(newExpression.Callee);
+                    WriteNode(newExpression.Callee, options);
                     WriteString("(");
-                    WriteParams(newExpression.Arguments);
+                    WriteParams(newExpression.Arguments, options);
                     WriteString(")");
                     break;
                 //this语句
@@ -433,16 +447,16 @@ namespace EsprimaToJs
                     NewLine();
                     WriteString("try {");
                     Spacing++;
-                    WriteNode(tryStatement.Block);
+                    WriteNode(tryStatement.Block, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
-                    WriteNode(tryStatement.Handler);
+                    WriteNode(tryStatement.Handler, options);
                     if (tryStatement.Finalizer != null)
                     {
                         WriteString("finally {");
                         Spacing++;
-                        WriteNode(tryStatement.Finalizer);
+                        WriteNode(tryStatement.Finalizer, options);
                         Spacing--;
                         NewLineOrBackspace();
                         WriteString("}");
@@ -452,10 +466,10 @@ namespace EsprimaToJs
                 case Nodes.CatchClause:
                     var catchClause = node as CatchClause;
                     WriteString("catch (");
-                    WriteNode(catchClause.Param);
+                    WriteNode(catchClause.Param, options);
                     WriteString("){");
                     Spacing++;
-                    WriteNode(catchClause.Body);
+                    WriteNode(catchClause.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -464,7 +478,7 @@ namespace EsprimaToJs
                 case Nodes.ThrowStatement:
                     var throwStatement = node as ThrowStatement;
                     WriteString("throw ");
-                    WriteNode(throwStatement.Argument);
+                    WriteNode(throwStatement.Argument, options);
                     break;
                 //空语句";"，直接丢弃
                 case Nodes.EmptyStatement:
@@ -477,7 +491,7 @@ namespace EsprimaToJs
                     if (breakStatement.Label != null)
                     {
                         WriteString(" ");
-                        WriteNode(breakStatement.Label);
+                        WriteNode(breakStatement.Label, options);
                     }
                     WriteString(";");
                     NewLine();
@@ -487,11 +501,11 @@ namespace EsprimaToJs
                     var switchStatement = node as SwitchStatement;
                     NewLine();
                     WriteString("switch ( ");
-                    WriteNode(switchStatement.Discriminant);
+                    WriteNode(switchStatement.Discriminant, options);
                     WriteString(" ){");
                     Spacing++;
                     NewLine();
-                    WriteNode(switchStatement.Cases);
+                    WriteNode(switchStatement.Cases, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -506,12 +520,12 @@ namespace EsprimaToJs
                     else
                     {
                         WriteString("case ");
-                        WriteNode(switchCase.Test);
+                        WriteNode(switchCase.Test, options);
                         WriteString(" :");
                     }
                     Spacing++;
                     NewLine();
-                    WriteNode(switchCase.Consequent);
+                    WriteNode(switchCase.Consequent, options);
                     Spacing--;
                     NewLineOrBackspace();
                     break;
@@ -520,11 +534,11 @@ namespace EsprimaToJs
                     var whileStatement = node as WhileStatement;
                     NewLine();
                     WriteString("while (");
-                    WriteNode(whileStatement.Test);
+                    WriteNode(whileStatement.Test, options);
                     WriteString("){");
                     Spacing++;
                     NewLine();
-                    WriteNode(whileStatement.Body);
+                    WriteNode(whileStatement.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -537,7 +551,7 @@ namespace EsprimaToJs
                     if (continueStatement.Label != null)
                     {
                         WriteString(" ");
-                        WriteNode(continueStatement.Label);
+                        WriteNode(continueStatement.Label, options);
                     }
                     WriteString(";");
                     break;
@@ -548,10 +562,10 @@ namespace EsprimaToJs
                 case Nodes.LabeledStatement:
                     var labeledStatement = node as LabeledStatement;
                     NewLine();
-                    WriteNode(labeledStatement.Label);
+                    WriteNode(labeledStatement.Label, options);
                     WriteString(":");
                     NewLine();
-                    WriteNode(labeledStatement.Body);
+                    WriteNode(labeledStatement.Body, options);
                     break;
                 //do while语句
                 case Nodes.DoWhileStatement:
@@ -559,21 +573,21 @@ namespace EsprimaToJs
                     NewLine();
                     WriteString("do{");
                     Spacing++;
-                    WriteNode(doWhileStatement.Body);
+                    WriteNode(doWhileStatement.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}while(");
-                    WriteNode(doWhileStatement.Test);
+                    WriteNode(doWhileStatement.Test, options);
                     WriteString(");");
                     break;
                 //with 语句
                 case Nodes.WithStatement:
                     var withStatement = node as WithStatement;
                     WriteString("with (");
-                    WriteNode(withStatement.Object);
+                    WriteNode(withStatement.Object, options);
                     WriteString("){");
                     Spacing++;
-                    WriteNode(withStatement.Body);
+                    WriteNode(withStatement.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -583,12 +597,12 @@ namespace EsprimaToJs
                     var forOfStatement = node as ForOfStatement;
                     NewLine();
                     WriteString("for(");
-                    WriteNode(forOfStatement.Left, Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
+                    WriteNode(forOfStatement.Left, options|Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
                     WriteString(" of ");
-                    WriteNode(forOfStatement.Right);
+                    WriteNode(forOfStatement.Right, options);
                     WriteString("){");
                     Spacing++;
-                    WriteNode(forOfStatement.Body);
+                    WriteNode(forOfStatement.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
