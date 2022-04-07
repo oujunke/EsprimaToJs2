@@ -1,5 +1,6 @@
 ﻿using Esprima.Ast;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace EsprimaToJs
@@ -8,9 +9,13 @@ namespace EsprimaToJs
     {
         public static string ToJs(Script script)
         {
+            return ToJs(script.Body);
+        }
+        public static string ToJs(IEnumerable<Node> script)
+        {
             System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
             var nodeConv = new NodeConv(memoryStream);
-            foreach (var item in script.Body)
+            foreach (var item in script)
             {
                 nodeConv.WriteNode(item);
                 //nodeConv.NewBranch();
