@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
+using System.Diagnostics;
+
 namespace EsprimaToJs
 {
     public class NodeConv
@@ -259,7 +261,7 @@ namespace EsprimaToJs
                 //读取对象属性
                 case Nodes.MemberExpression:
                     var memberExpression = node as MemberExpression;
-                    WriteNode(memberExpression.Object, options|Options.VariableDeclaratorBrackets);
+                    WriteNode(memberExpression.Object, options | Options.VariableDeclaratorBrackets);
                     if (memberExpression.Computed)
                     {
                         WriteString("[");
@@ -292,7 +294,7 @@ namespace EsprimaToJs
                 //方法调用
                 case Nodes.CallExpression:
                     var callExpression = node as CallExpression;
-                    WriteNode(callExpression.Callee,Options.FunctionExpressionBrackets);
+                    WriteNode(callExpression.Callee, Options.FunctionExpressionBrackets);
                     WriteString("(");
                     WriteParams(callExpression.Arguments);
                     WriteString(")");
@@ -305,7 +307,7 @@ namespace EsprimaToJs
                         NewLine();
                     }
                     WriteString("if(");
-                    WriteNode(ifStatement.Test, options|Options.VariableDeclaratorBrackets);
+                    WriteNode(ifStatement.Test, options | Options.VariableDeclaratorBrackets);
                     WriteString("){");
                     Spacing++;
                     NewLine();
@@ -340,7 +342,7 @@ namespace EsprimaToJs
                 case Nodes.LogicalExpression:
                     var binaryExpression = node as BinaryExpression;
                     WriteString("(");
-                    WriteNode(binaryExpression.Left, options | Options.VariableDeclaratorBrackets| Options.ConditionalExpressionBrackets);
+                    WriteNode(binaryExpression.Left, options | Options.VariableDeclaratorBrackets | Options.ConditionalExpressionBrackets);
                     WriteOperator(binaryExpression.Operator);
                     WriteNode(binaryExpression.Right, options | Options.VariableDeclaratorBrackets | Options.ConditionalExpressionBrackets);
                     WriteString(")");
@@ -365,7 +367,7 @@ namespace EsprimaToJs
                 case Nodes.ForInStatement:
                     ForInStatement forInStatement = node as ForInStatement;
                     WriteString("for(");
-                    WriteNode(forInStatement.Left, options| Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
+                    WriteNode(forInStatement.Left, options | Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
                     WriteString(" in ");
                     WriteNode(forInStatement.Right, options);
                     WriteString("){");
@@ -394,15 +396,15 @@ namespace EsprimaToJs
                     var forStatement = node as ForStatement;
                     NewLine();
                     WriteString("for(");
-                    WriteNode(forStatement.Init, options| Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch | Options.VariableDeclarationComma);
+                    WriteNode(forStatement.Init, options | Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch | Options.VariableDeclarationComma);
                     WriteString(" ; ");
                     WriteNode(forStatement.Test, options);
                     WriteString(" ; ");
-                    WriteNode(forStatement.Update,options);
+                    WriteNode(forStatement.Update, options);
                     WriteString(" ){");
                     Spacing++;
                     NewLine();
-                    WriteNode(forStatement.Body,options);
+                    WriteNode(forStatement.Body, options);
                     Spacing--;
                     NewLineOrBackspace();
                     WriteString("}");
@@ -597,7 +599,7 @@ namespace EsprimaToJs
                     var forOfStatement = node as ForOfStatement;
                     NewLine();
                     WriteString("for(");
-                    WriteNode(forOfStatement.Left, options|Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
+                    WriteNode(forOfStatement.Left, options | Options.VariableDeclarationNotNewLine | Options.VariableDeclaratorNotBranch);
                     WriteString(" of ");
                     WriteNode(forOfStatement.Right, options);
                     WriteString("){");
@@ -607,6 +609,11 @@ namespace EsprimaToJs
                     NewLineOrBackspace();
                     WriteString("}");
                     break;
+                case Nodes.SpreadElement:
+                    var spreadElement=node as SpreadElement;
+                    WriteString("...");
+                    WriteNode(spreadElement.Argument);
+                    break;
                 case Nodes.Import:
                 case Nodes.Program:
                 case Nodes.RestElement:
@@ -614,7 +621,6 @@ namespace EsprimaToJs
                 case Nodes.TemplateLiteral:
                 case Nodes.ArrayPattern:
                 case Nodes.AssignmentPattern:
-                case Nodes.SpreadElement:
                 case Nodes.ObjectPattern:
                 case Nodes.ArrowParameterPlaceHolder:
                 case Nodes.MetaProperty:
@@ -635,9 +641,11 @@ namespace EsprimaToJs
                 case Nodes.ExportAllDeclaration:
                 case Nodes.ExportDefaultDeclaration:
                 case Nodes.ClassExpression:
-                    throw new Exception($"请添加类型\"{node.Type}\"的转换实现");
+                    Debugger.Break();
+                    return;
                 default:
-                    throw new Exception($"请添加类型\"{node.Type}\"的转换");
+                    Debugger.Break();
+                    return;
                     //break;
             }
         }
