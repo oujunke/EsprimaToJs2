@@ -559,6 +559,9 @@ namespace EsprimaToJs
                     break;
                 //忽略Debugger
                 case Nodes.DebuggerStatement:
+                    NewLine();
+                    WriteString("debugger;");
+                    NewLine();
                     break;
                 //js 中goto语法  标签
                 case Nodes.LabeledStatement:
